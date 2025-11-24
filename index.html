@@ -637,30 +637,30 @@
       else if (index === 1) rankBadge = `<span class="badge-rank">#2</span>`;
       else if (index === 2) rankBadge = `<span class="badge-rank">#3</span>`;
 
-const rincianJuz = Array.isArray(row.juz_list) && row.juz_list.length > 0
-  ? row.juz_list.join(", ")
-  : "-";
-
-      div.innerHTML = `
-        <div class="summary-left">
-          <span class="summary-name">${row.nama} ${rankBadge}</span>
-          <span class="summary-meta">
-            Total juz: <strong>${row.total_juz}</strong>
-          </span>
-          <span class="summary-meta">
-            Rincian juz: ${rincianJuz}
-          </span>
-        </div>
-        <div class="summary-right">
-          <div class="chip">
-            ⏱ tercepat: ${row.waktu_tercepat ? formatTime(row.waktu_tercepat) : "-"}
-          </div>
-        </div>
-      `;
-
-      summaryListEl.appendChild(div);
-    });
-  }
+    const rincianJuz = Array.isArray(row.juz_list) && row.juz_list.length > 0
+      ? row.juz_list.join(", ")
+      : "-";
+    
+          div.innerHTML = `
+            <div class="summary-left">
+              <span class="summary-name">${row.nama} ${rankBadge}</span>
+              <span class="summary-meta">
+                Total juz: <strong>${row.total_juz}</strong>
+              </span>
+              <span class="summary-meta">
+                Rincian juz: ${rincianJuz}
+              </span>
+            </div>
+            <div class="summary-right">
+              <div class="chip">
+                ⏱ tercepat: ${row.waktu_tercepat ? formatTime(row.waktu_tercepat) : "-"}
+              </div>
+            </div>
+          `;
+    
+          summaryListEl.appendChild(div);
+        });
+      }
 
   btnRefreshSummary.addEventListener("click", loadSummary);
 
