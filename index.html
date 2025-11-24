@@ -1,0 +1,668 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8" />
+  <title>Laporan Tilawah Pegawai</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+
+  <!-- Supabase JS -->
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+
+  <style>
+    :root {
+      --blue: #0077ff;
+      --blue-soft: #e6f0ff;
+      --green: #00b894;
+      --green-soft: #e5f9f4;
+      --dark: #111827;
+      --text: #1f2933;
+      --white: #ffffff;
+      --gray-soft: #f5f7fa;
+      --border: #e2e8f0;
+      --radius-lg: 16px;
+      --radius-xl: 24px;
+      --shadow-soft: 0 8px 20px rgba(15, 23, 42, 0.08);
+    }
+
+    * {
+      box-sizing: border-box;
+      font-family: system-ui, -apple-system, BlinkMacSystemFont, "Inter", sans-serif;
+    }
+
+    body {
+      margin: 0;
+      padding: 0;
+      background: linear-gradient(135deg, var(--blue-soft), var(--green-soft));
+      color: var(--text);
+      min-height: 100vh;
+      display: flex;
+      justify-content: center;
+    }
+
+    .app-shell {
+      width: 100%;
+      max-width: 480px; /* mobile card */
+      background: rgba(255, 255, 255, 0.9);
+      backdrop-filter: blur(10px);
+      margin: 12px;
+      border-radius: 32px;
+      box-shadow: var(--shadow-soft);
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+    }
+
+    @media (min-width: 768px) {
+      .app-shell {
+        max-width: 800px;
+        margin-top: 32px;
+      }
+    }
+
+    .app-header {
+      padding: 16px 20px 8px;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.4);
+      background: linear-gradient(135deg, var(--blue), var(--green));
+      color: var(--white);
+    }
+
+    .app-title {
+      font-size: 1.2rem;
+      font-weight: 700;
+      margin: 0;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .app-badge {
+      font-size: 0.7rem;
+      padding: 2px 8px;
+      border-radius: 999px;
+      background: rgba(255, 255, 255, 0.2);
+      border: 1px solid rgba(255, 255, 255, 0.5);
+    }
+
+    .app-subtitle {
+      font-size: 0.8rem;
+      opacity: 0.9;
+      margin-top: 4px;
+      margin-bottom: 8px;
+    }
+
+    .tab-bar {
+      display: flex;
+      gap: 6px;
+      padding: 6px;
+      border-radius: 999px;
+      background: rgba(15, 23, 42, 0.1);
+      margin-top: 8px;
+    }
+
+    .tab-btn {
+      flex: 1;
+      border: none;
+      background: transparent;
+      color: #e5f0ff;
+      font-size: 0.8rem;
+      padding: 6px 10px;
+      border-radius: 999px;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 6px;
+      transition: background 0.2s, color 0.2s, transform 0.1s;
+    }
+
+    .tab-btn.active {
+      background: var(--white);
+      color: var(--blue);
+      transform: translateY(-1px);
+    }
+
+    .app-body {
+      padding: 16px;
+      overflow-y: auto;
+    }
+
+    .card {
+      background: var(--white);
+      border-radius: var(--radius-xl);
+      padding: 14px 14px 10px;
+      border: 1px solid var(--border);
+      box-shadow: 0 4px 14px rgba(15, 23, 42, 0.04);
+      margin-bottom: 12px;
+    }
+
+    .card-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 8px;
+    }
+
+    .card-title {
+      font-size: 0.95rem;
+      font-weight: 600;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .card-subtitle {
+      font-size: 0.75rem;
+      color: #6b7280;
+    }
+
+    .pill {
+      font-size: 0.7rem;
+      padding: 2px 8px;
+      border-radius: 999px;
+      border: 1px solid var(--border);
+      background: var(--gray-soft);
+      color: #4b5563;
+    }
+
+    form {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+      margin-top: 4px;
+    }
+
+    .field {
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+    }
+
+    .field label {
+      font-size: 0.8rem;
+      color: #374151;
+      font-weight: 500;
+    }
+
+    .field input,
+    .field select {
+      border-radius: 999px;
+      border: 1px solid var(--border);
+      padding: 8px 12px;
+      font-size: 0.85rem;
+      outline: none;
+      background: #f9fafb;
+    }
+
+    .field input:focus,
+    .field select:focus {
+      border-color: var(--blue);
+      background: #ffffff;
+      box-shadow: 0 0 0 1px rgba(59, 130, 246, 0.3);
+    }
+
+    .btn-primary {
+      border-radius: 999px;
+      border: none;
+      padding: 9px 14px;
+      font-size: 0.9rem;
+      font-weight: 600;
+      color: var(--white);
+      background: linear-gradient(135deg, var(--blue), var(--green));
+      cursor: pointer;
+      margin-top: 4px;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      gap: 6px;
+      box-shadow: 0 6px 14px rgba(16, 185, 129, 0.35);
+    }
+
+    .btn-primary:active {
+      transform: translateY(1px);
+      box-shadow: 0 3px 8px rgba(16, 185, 129, 0.35);
+    }
+
+    .btn-ghost {
+      border-radius: 999px;
+      border: 1px dashed var(--border);
+      padding: 6px 10px;
+      font-size: 0.8rem;
+      background: #f9fafb;
+      cursor: pointer;
+    }
+
+    .helper-text {
+      font-size: 0.7rem;
+      color: #6b7280;
+    }
+
+    .toast {
+      position: fixed;
+      left: 50%;
+      bottom: 16px;
+      transform: translateX(-50%);
+      background: var(--dark);
+      color: var(--white);
+      padding: 8px 14px;
+      font-size: 0.8rem;
+      border-radius: 999px;
+      display: none;
+      align-items: center;
+      gap: 8px;
+      z-index: 999;
+      box-shadow: 0 8px 24px rgba(15, 23, 42, 0.4);
+    }
+
+    .toast.show {
+      display: flex;
+    }
+
+    .summary-filters {
+      display: flex;
+      gap: 8px;
+      align-items: center;
+      margin-bottom: 8px;
+      flex-wrap: wrap;
+    }
+
+    .summary-list {
+      max-height: 320px;
+      overflow-y: auto;
+      margin-top: 4px;
+      padding-right: 4px;
+    }
+
+    .summary-item {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 8px 10px;
+      border-radius: 999px;
+      background: var(--gray-soft);
+      margin-bottom: 6px;
+    }
+
+    .summary-left {
+      display: flex;
+      flex-direction: column;
+    }
+
+    .summary-name {
+      font-size: 0.85rem;
+      font-weight: 600;
+    }
+
+    .summary-meta {
+      font-size: 0.72rem;
+      color: #6b7280;
+    }
+
+    .summary-right {
+      text-align: right;
+      font-size: 0.78rem;
+    }
+
+    .badge-rank {
+      font-size: 0.65rem;
+      padding: 2px 6px;
+      border-radius: 999px;
+      border: 1px solid rgba(37, 99, 235, 0.3);
+      background: rgba(37, 99, 235, 0.06);
+      margin-left: 4px;
+    }
+
+    .empty-state {
+      font-size: 0.8rem;
+      color: #6b7280;
+      text-align: center;
+      padding: 12px 8px;
+    }
+
+    .chip {
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+      font-size: 0.7rem;
+      padding: 2px 8px;
+      border-radius: 999px;
+      background: rgba(16, 185, 129, 0.06);
+      border: 1px solid rgba(16, 185, 129, 0.3);
+      color: #047857;
+    }
+  </style>
+</head>
+<body>
+<div class="app-shell">
+  <header class="app-header">
+    <div class="app-title">
+      📖 Tilawah Pegawai
+      <span class="app-badge">Beta</span>
+    </div>
+    <div class="app-subtitle">
+      Laporan & capaian tilawah pegawai, reset tiap awal bulan namun histori tetap tersimpan.
+    </div>
+
+    <div class="tab-bar">
+      <button class="tab-btn active" data-tab="input">
+        ✏️ Input Tilawah
+      </button>
+      <button class="tab-btn" data-tab="summary">
+        📊 Capaian Bulanan
+      </button>
+    </div>
+  </header>
+
+  <main class="app-body">
+    <!-- TAB INPUT -->
+    <section id="tab-input" class="tab-panel">
+      <div class="card">
+        <div class="card-header">
+          <div>
+            <div class="card-title">
+              Form Setoran Tilawah
+            </div>
+            <div class="card-subtitle">
+              Pilih nama, tanggal, dan juz yang dibaca.
+            </div>
+          </div>
+          <span class="pill">Mode Pegawai</span>
+        </div>
+
+        <form id="tilawah-form">
+          <div class="field">
+            <label for="pegawai">Nama Pegawai</label>
+            <select id="pegawai" required>
+              <option value="">Memuat daftar pegawai...</option>
+            </select>
+          </div>
+
+          <div class="field">
+            <label for="tanggal">Tanggal Setoran</label>
+            <input type="date" id="tanggal" required />
+          </div>
+
+          <div class="field">
+            <label for="juz">Juz yang Dibaca</label>
+            <select id="juz" required>
+              <option value="">Pilih juz</option>
+            </select>
+          </div>
+
+          <button type="submit" class="btn-primary">
+            Simpan Laporan
+          </button>
+
+          <p class="helper-text">
+            Catatan: sistem akan mencatat waktu submit sebagai referensi “waktu tilawah tercepat” per bulan.
+          </p>
+        </form>
+      </div>
+    </section>
+
+    <!-- TAB SUMMARY -->
+    <section id="tab-summary" class="tab-panel" style="display:none;">
+      <div class="card">
+        <div class="card-header">
+          <div>
+            <div class="card-title">
+              Capaian Tilawah Bulanan
+            </div>
+            <div class="card-subtitle">
+              Daftar pegawai, jumlah juz terbaca & waktu setoran tercepat.
+            </div>
+          </div>
+          <span class="pill">Mode Viewer</span>
+        </div>
+
+        <div class="summary-filters">
+          <div class="field" style="flex:1; min-width: 140px;">
+            <label for="bulan">Bulan</label>
+            <input type="month" id="bulan" />
+          </div>
+          <button id="btn-refresh-summary" class="btn-ghost">
+            🔄 Tampilkan
+          </button>
+        </div>
+
+        <div class="summary-list" id="summary-list">
+          <div class="empty-state">
+            Pilih bulan untuk menampilkan capaian tilawah.
+          </div>
+        </div>
+      </div>
+
+      <p class="helper-text">
+        Sistem tidak menghapus data: “reset awal bulan” hanya berarti laporan yang tampil difilter berdasarkan bulan yang dipilih.
+      </p>
+    </section>
+  </main>
+</div>
+
+<div id="toast" class="toast">
+  <span id="toast-icon">✅</span>
+  <span id="toast-message">Berhasil</span>
+</div>
+
+<script>
+  // ================== KONFIGURASI SUPABASE ==================
+  const SUPABASE_URL = "https://YOUR-PROJECT.supabase.co"; // ganti
+  const SUPABASE_ANON_KEY = "YOUR-ANON-KEY"; // ganti
+
+  const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+  // ================== HELPER UI ==================
+  const toastEl = document.getElementById("toast");
+  const toastMessageEl = document.getElementById("toast-message");
+  const toastIconEl = document.getElementById("toast-icon");
+
+  function showToast(message, type = "success") {
+    toastMessageEl.textContent = message;
+    if (type === "error") {
+      toastIconEl.textContent = "⚠️";
+    } else {
+      toastIconEl.textContent = "✅";
+    }
+    toastEl.classList.add("show");
+    setTimeout(() => {
+      toastEl.classList.remove("show");
+    }, 2500);
+  }
+
+  // ================== TAB SWITCHING ==================
+  const tabButtons = document.querySelectorAll(".tab-btn");
+  const tabPanels = document.querySelectorAll(".tab-panel");
+
+  tabButtons.forEach(btn => {
+    btn.addEventListener("click", () => {
+      const target = btn.dataset.tab;
+
+      tabButtons.forEach(b => b.classList.remove("active"));
+      btn.classList.add("active");
+
+      tabPanels.forEach(panel => {
+        panel.style.display = panel.id === "tab-" + target ? "block" : "none";
+      });
+    });
+  });
+
+  // ================== INIT FORM (JUZ & TANGGAL) ==================
+  const juzSelect = document.getElementById("juz");
+  (function initJuzOptions() {
+    for (let i = 1; i <= 30; i++) {
+      const opt = document.createElement("option");
+      opt.value = i;
+      opt.textContent = "Juz " + i;
+      juzSelect.appendChild(opt);
+    }
+  })();
+
+  const tanggalInput = document.getElementById("tanggal");
+  (function setToday() {
+    const today = new Date();
+    const yyyy = today.getFullYear();
+    const mm = String(today.getMonth() + 1).padStart(2, "0");
+    const dd = String(today.getDate()).padStart(2, "0");
+    tanggalInput.value = `${yyyy}-${mm}-${dd}`;
+  })();
+
+  // ================== LOAD PEGAWAI ==================
+  const pegawaiSelect = document.getElementById("pegawai");
+
+  async function loadPegawai() {
+    pegawaiSelect.innerHTML = `<option value="">Memuat...</option>`;
+
+    const { data, error } = await supabaseClient
+      .from("pegawai")
+      .select("id, nama")
+      .eq("is_active", true)
+      .order("nama", { ascending: true });
+
+    if (error) {
+      console.error(error);
+      pegawaiSelect.innerHTML = `<option value="">Gagal memuat pegawai</option>`;
+      showToast("Gagal memuat daftar pegawai", "error");
+      return;
+    }
+
+    if (!data || data.length === 0) {
+      pegawaiSelect.innerHTML = `<option value="">Belum ada data pegawai</option>`;
+      return;
+    }
+
+    pegawaiSelect.innerHTML = `<option value="">Pilih pegawai</option>`;
+    data.forEach(p => {
+      const opt = document.createElement("option");
+      opt.value = p.id;
+      opt.textContent = p.nama;
+      pegawaiSelect.appendChild(opt);
+    });
+  }
+
+  // ================== SUBMIT TILAWAH ==================
+  const tilawahForm = document.getElementById("tilawah-form");
+
+  tilawahForm.addEventListener("submit", async (e) => {
+    e.preventDefault();
+
+    const pegawaiId = pegawaiSelect.value;
+    const tanggal = tanggalInput.value;
+    const juz = juzSelect.value;
+
+    if (!pegawaiId || !tanggal || !juz) {
+      showToast("Lengkapi semua field terlebih dahulu", "error");
+      return;
+    }
+
+    const { error } = await supabaseClient
+      .from("laporan_tilawah")
+      .insert([
+        {
+          pegawai_id: pegawaiId,
+          tanggal_setoran: tanggal,
+          juz: parseInt(juz, 10)
+        }
+      ]);
+
+    if (error) {
+      console.error(error);
+      showToast("Gagal menyimpan laporan", "error");
+      return;
+    }
+
+    showToast("Laporan tilawah tersimpan");
+    // reset hanya juz, tanggal biarkan default
+    juzSelect.value = "";
+  });
+
+  // ================== SUMMARY (CAPAIAN BULANAN) ==================
+  const bulanInput = document.getElementById("bulan");
+  const summaryListEl = document.getElementById("summary-list");
+  const btnRefreshSummary = document.getElementById("btn-refresh-summary");
+
+  (function setCurrentMonth() {
+    const today = new Date();
+    const yyyy = today.getFullYear();
+    const mm = String(today.getMonth() + 1).padStart(2, "0");
+    bulanInput.value = `${yyyy}-${mm}`;
+  })();
+
+  function formatTime(dateStr) {
+    const d = new Date(dateStr);
+    if (isNaN(d.getTime())) return "-";
+    return d.toLocaleString("id-ID", {
+      day: "2-digit",
+      month: "short",
+      hour: "2-digit",
+      minute: "2-digit"
+    });
+  }
+
+  async function loadSummary() {
+    const monthValue = bulanInput.value;
+    if (!monthValue) {
+      summaryListEl.innerHTML = `<div class="empty-state">Pilih bulan terlebih dahulu.</div>`;
+      return;
+    }
+
+    const [year, month] = monthValue.split("-");
+    const bulanDateStr = `${year}-${month}-01`;
+
+    summaryListEl.innerHTML = `<div class="empty-state">Memuat capaian tilawah...</div>`;
+
+    const { data, error } = await supabaseClient
+      .from("resume_tilawah")
+      .select("pegawai_id, nama, bulan, total_juz, waktu_tercepat")
+      .eq("bulan", bulanDateStr)
+      .order("total_juz", { ascending: false });
+
+    if (error) {
+      console.error(error);
+      summaryListEl.innerHTML = `<div class="empty-state">Gagal memuat data capaian.</div>`;
+      showToast("Gagal memuat capaian", "error");
+      return;
+    }
+
+    if (!data || data.length === 0) {
+      summaryListEl.innerHTML = `<div class="empty-state">Belum ada laporan tilawah untuk bulan ini.</div>`;
+      return;
+    }
+
+    summaryListEl.innerHTML = "";
+    data.forEach((row, index) => {
+      const div = document.createElement("div");
+      div.className = "summary-item";
+
+      let rankBadge = "";
+      if (index === 0) rankBadge = `<span class="badge-rank">#1 🌟</span>`;
+      else if (index === 1) rankBadge = `<span class="badge-rank">#2</span>`;
+      else if (index === 2) rankBadge = `<span class="badge-rank">#3</span>`;
+
+      div.innerHTML = `
+        <div class="summary-left">
+          <span class="summary-name">${row.nama} ${rankBadge}</span>
+          <span class="summary-meta">
+            Total juz: <strong>${row.total_juz}</strong>
+          </span>
+        </div>
+        <div class="summary-right">
+          <div class="chip">
+            ⏱ tercepat: ${row.waktu_tercepat ? formatTime(row.waktu_tercepat) : "-"}
+          </div>
+        </div>
+      `;
+
+      summaryListEl.appendChild(div);
+    });
+  }
+
+  btnRefreshSummary.addEventListener("click", loadSummary);
+
+  // ================== INITIAL LOAD ==================
+  (async function init() {
+    await loadPegawai();
+    // langsung muat summary current month
+    await loadSummary();
+  })();
+</script>
+</body>
+</html>
