@@ -384,7 +384,7 @@
           <div class="field">
             <label for="juz">Juz yang dibaca:</label>
             <select id="juz" required>
-              <option value="">Pilih juz</option>
+              <option value="">Pilih Juz</option>
             </select>
           </div>
 
@@ -529,7 +529,7 @@
       return;
     }
 
-    pegawaiSelect.innerHTML = `<option value="">Pilih</option>`;
+    pegawaiSelect.innerHTML = `<option value="">Pilih Nama</option>`;
     data.forEach(p => {
       const opt = document.createElement("option");
       opt.value = p.id;
