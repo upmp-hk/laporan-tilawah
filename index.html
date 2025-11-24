@@ -336,7 +336,7 @@
   <header class="app-header">
     <div class="app-title">
       📖 Tilawah Pegawai
-      <span class="app-badge">Beta</span>
+      <span class="app-badge">Pontren Husnul Khotimah</span>
     </div>
     <div class="app-subtitle">
       Laporan & capaian tilawah pegawai, reset tiap awal bulan namun histori tetap tersimpan.
@@ -344,7 +344,7 @@
 
     <div class="tab-bar">
       <button class="tab-btn active" data-tab="input">
-        ✏️ Input Tilawah
+        ✏️ Laporan Tilawah
       </button>
       <button class="tab-btn" data-tab="summary">
         📊 Capaian Bulanan
@@ -365,31 +365,31 @@
               Pilih nama, tanggal, dan juz yang dibaca.
             </div>
           </div>
-          <span class="pill">Mode Pegawai</span>
+          <span class="pill">Mode Imput</span>
         </div>
 
         <form id="tilawah-form">
           <div class="field">
-            <label for="pegawai">Nama Pegawai</label>
+            <label for="pegawai">Nama Pegawai:</label>
             <select id="pegawai" required>
               <option value="">Memuat daftar pegawai...</option>
             </select>
           </div>
 
           <div class="field">
-            <label for="tanggal">Tanggal Setoran</label>
+            <label for="tanggal">Tanggal Tilawah:</label>
             <input type="date" id="tanggal" required />
           </div>
 
           <div class="field">
-            <label for="juz">Juz yang Dibaca</label>
+            <label for="juz">Juz yang dibaca:</label>
             <select id="juz" required>
               <option value="">Pilih juz</option>
             </select>
           </div>
 
           <button type="submit" class="btn-primary">
-            Simpan Laporan
+            Kirim Laporan
           </button>
 
           <p class="helper-text">
@@ -411,16 +411,16 @@
               Daftar pegawai, jumlah juz terbaca & waktu setoran tercepat.
             </div>
           </div>
-          <span class="pill">Mode Viewer</span>
+          <span class="pill">Mode View</span>
         </div>
 
         <div class="summary-filters">
-          <div class="field" style="flex:1; min-width: 140px;">
-            <label for="bulan">Bulan</label>
+          <div class="field" style="flex:1; min-width: 170px;">
+            <label for="bulan">Bulan:</label>
             <input type="month" id="bulan" />
           </div>
           <button id="btn-refresh-summary" class="btn-ghost">
-            🔄 Tampilkan
+            🔄 Refresh
           </button>
         </div>
 
