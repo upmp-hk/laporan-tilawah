@@ -370,7 +370,7 @@
 
         <form id="tilawah-form">
           <div class="field">
-            <label for="pegawai">Nama Pegawai:</label>
+            <label for="pegawai">Nama Lengkap:</label>
             <select id="pegawai" required>
               <option value="">Memuat daftar pegawai...</option>
             </select>
@@ -432,7 +432,7 @@
       </div>
 
       <p class="helper-text">
-        Sistem tidak menghapus data capaian tilawah bulanan. Data Capaian yang ditampilkan berdasarkan bulan yang dipilih.
+        Sistem tidak menghapus data capaian tilawah bulanan. Data capaian tilawah ditampilkan berdasarkan bulan yang dipilih.
       </p>
     </section>
   </main>
@@ -529,7 +529,7 @@
       return;
     }
 
-    pegawaiSelect.innerHTML = `<option value="">Pilih pegawai</option>`;
+    pegawaiSelect.innerHTML = `<option value="">Pilih</option>`;
     data.forEach(p => {
       const opt = document.createElement("option");
       opt.value = p.id;
