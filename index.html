@@ -610,8 +610,8 @@
     summaryListEl.innerHTML = `<div class="empty-state">Memuat capaian tilawah...</div>`;
 
     const { data, error } = await supabaseClient
-      .from("resume_tilawah")
-      .select("pegawai_id, nama, bulan, total_juz, waktu_tercepat")
+      .from("tilawah_summary")
+      .select("pegawai_id, nama, bulan, total_juz, waktu_tercepat, juz_list")
       .eq("bulan", bulanDateStr)
       .order("total_juz", { ascending: false });
 
@@ -637,11 +637,18 @@
       else if (index === 1) rankBadge = `<span class="badge-rank">#2</span>`;
       else if (index === 2) rankBadge = `<span class="badge-rank">#3</span>`;
 
+const rincianJuz = Array.isArray(row.juz_list) && row.juz_list.length > 0
+  ? row.juz_list.join(", ")
+  : "-";
+
       div.innerHTML = `
         <div class="summary-left">
           <span class="summary-name">${row.nama} ${rankBadge}</span>
           <span class="summary-meta">
             Total juz: <strong>${row.total_juz}</strong>
+          </span>
+          <span class="summary-meta">
+            Rincian juz: ${rincianJuz}
           </span>
         </div>
         <div class="summary-right">
