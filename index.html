@@ -610,7 +610,7 @@
     summaryListEl.innerHTML = `<div class="empty-state">Memuat capaian tilawah...</div>`;
 
     const { data, error } = await supabaseClient
-      .from("tilawah_summary")
+      .from("resume_tilawah")
       .select("pegawai_id, nama, bulan, total_juz, waktu_tercepat, juz_list")
       .eq("bulan", bulanDateStr)
       .order("total_juz", { ascending: false });
