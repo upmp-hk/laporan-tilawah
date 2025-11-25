@@ -498,13 +498,6 @@
           </div>
         </div>
 
-        <div class="summary-list" id="summary-list">
-          <div class="empty-state">
-            Pilih bulan untuk menampilkan capaian tilawah.
-          </div>
-        </div>
-      </div>
-
       <p class="helper-text">
         Sistem tidak menghapus data capaian tilawah bulanan. Data capaian tilawah ditampilkan berdasarkan bulan yang dipilih.
       </p>
@@ -744,7 +737,7 @@
     
       summaryListEl.appendChild(div);
     });
-
+  }
   btnRefreshSummary.addEventListener("click", loadSummary);
     const btnDownloadRekap = document.getElementById("btn-download-rekap");
   btnDownloadRekap.addEventListener("click", downloadRekap);
