@@ -25,7 +25,7 @@
     }
 
     html {
-      font-size: 17px; /* sedikit lebih besar dari default browser */
+      font-size: 17px;
     }
 
     * {
@@ -392,14 +392,38 @@
       background: var(--blue-soft);
     }
 
+    /* GRID JUZ 1–30 */
+    .juz-grid {
+      display: grid;
+      grid-template-columns: repeat(5, 1fr); /* 1–5, 6–10, dst */
+      gap: 6px;
+      margin-top: 4px;
+    }
+
+    .juz-pill {
+      padding: 6px 0;
+      border-radius: 999px;
+      border: 1px solid var(--border);
+      background: #f9fafb;
+      font-size: 0.9rem;
+      text-align: center;
+      cursor: pointer;
+    }
+
+    .juz-pill.selected {
+      background: linear-gradient(135deg, var(--blue), var(--green));
+      color: #ffffff;
+      border-color: transparent;
+    }
+
   </style>
 </head>
 <body>
 <div class="app-shell">
   <header class="app-header">
     <div class="app-title">
-      Tilawah Pegawai 📖
-      <span class="app-badge">Pontren HK</span>
+      📖 Tilawah Pegawai
+      <span class="app-badge">Pontren Husnul Khotimah</span>
     </div>
     <div class="app-subtitle">
       Laporan & capaian tilawah pegawai, aplikasi untuk melaporkan tilawah harian pegawai dan rekap capaian tiap bulannya.
@@ -450,10 +474,9 @@
           </div>
 
           <div class="field">
-            <label for="juz">Juz yang dibaca:</label>
-            <select id="juz" required>
-              <option value="">Pilih Juz</option>
-            </select>
+            <label>Juz yang dibaca:</label>
+            <div id="juz-grid" class="juz-grid"></div>
+            <input type="hidden" id="juz-value" />
           </div>
 
           <button type="submit" class="btn-primary">
@@ -566,17 +589,7 @@
     });
   });
 
-  // ================== INIT FORM (JUZ & TANGGAL) ==================
-  const juzSelect = document.getElementById("juz");
-  (function initJuzOptions() {
-    for (let i = 1; i <= 30; i++) {
-      const opt = document.createElement("option");
-      opt.value = i;
-      opt.textContent = "Juz " + i;
-      juzSelect.appendChild(opt);
-    }
-  })();
-
+  // ================== INIT TANGGAL ==================
   const tanggalInput = document.getElementById("tanggal");
   (function setToday() {
     const today = new Date();
@@ -584,6 +597,28 @@
     const mm = String(today.getMonth() + 1).padStart(2, "0");
     const dd = String(today.getDate()).padStart(2, "0");
     tanggalInput.value = `${yyyy}-${mm}-${dd}`;
+  })();
+
+  // ================== GRID JUZ 1–30 ==================
+  const juzGrid = document.getElementById("juz-grid");
+  const juzValueInput = document.getElementById("juz-value");
+
+  (function initJuzGrid() {
+    for (let i = 1; i <= 30; i++) {
+      const btn = document.createElement("button");
+      btn.type = "button";
+      btn.className = "juz-pill";
+      btn.textContent = i;
+      btn.dataset.value = i;
+
+      btn.addEventListener("click", () => {
+        document.querySelectorAll(".juz-pill").forEach(el => el.classList.remove("selected"));
+        btn.classList.add("selected");
+        juzValueInput.value = i;
+      });
+
+      juzGrid.appendChild(btn);
+    }
   })();
 
   // ================== LOAD PEGAWAI + AUTOCOMPLETE ==================
@@ -665,7 +700,7 @@
 
     const pegawaiId = pegawaiIdInput.value;
     const tanggal = tanggalInput.value;
-    const juz = juzSelect.value;
+    const juz = juzValueInput.value;
 
     if (!pegawaiId || !tanggal || !juz) {
       showToast("Lengkapi semua field terlebih dahulu", "error");
@@ -714,7 +749,9 @@
     }
 
     showToast("Laporan tilawah tersimpan");
-    juzSelect.value = "";
+    // reset juz pilihan
+    juzValueInput.value = "";
+    document.querySelectorAll(".juz-pill").forEach(el => el.classList.remove("selected"));
   });
 
   // ================== SUMMARY (CAPAIAN BULANAN) ==================
