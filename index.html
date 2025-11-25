@@ -365,6 +365,27 @@
       border: 1px solid rgba(16, 185, 129, 0.3);
       color: #047857;
     }
+    .suggestions {
+      margin-top: 4px;
+      border-radius: 16px;
+      border: 1px solid var(--border);
+      background: #ffffff;
+      max-height: 200px;
+      overflow-y: auto;
+      box-shadow: 0 8px 20px rgba(15, 23, 42, 0.08);
+      font-size: 0.8rem;
+      z-index: 10;
+    }
+    
+    .suggestion-item {
+      padding: 6px 10px;
+      cursor: pointer;
+    }
+    
+    .suggestion-item:hover {
+      background: var(--blue-soft);
+    }
+
   </style>
 </head>
 <body>
@@ -406,37 +427,37 @@
 
         <form id="tilawah-form">
           <div class="field">
-            <label for="pegawai-search">Nama Lengkap:</label>
+            <label for="pegawai-input">Nama Lengkap:</label>
             <input
               type="text"
-              id="pegawai-search"
-              placeholder="Ketik untuk mencari nama pegawai..."
+              id="pegawai-input"
+              placeholder="Ketik beberapa huruf nama pegawai..."
+              autocomplete="off"
             />
-            <select id="pegawai" required>
-              <option value="">Memuat daftar pegawai...</option>
-            </select>
+            <div id="pegawai-suggestions" class="suggestions" style="display:none;"></div>
+            <input type="hidden" id="pegawai-id" />
           </div>
-
+        
           <div class="field">
             <label for="tanggal">Tanggal Tilawah:</label>
             <input type="date" id="tanggal" required />
           </div>
-
+        
           <div class="field">
             <label for="juz">Juz yang dibaca:</label>
             <select id="juz" required>
               <option value="">Pilih Juz</option>
             </select>
           </div>
-
+        
           <button type="submit" class="btn-primary">
             Kirim Laporan
           </button>
-
+        
           <p class="helper-text">
             Sistem akan mencatat waktu submit sebagai referensi “waktu tilawah tercepat” per bulan.
           </p>
-        </form>
+        </form>      
       </div>
     </section>
 
@@ -559,33 +580,13 @@
     tanggalInput.value = `${yyyy}-${mm}-${dd}`;
   })();
 
-  // ================== LOAD PEGAWAI + SEARCH ==================
-  const pegawaiSelect = document.getElementById("pegawai");
-  const pegawaiSearchInput = document.getElementById("pegawai-search");
+  // ================== LOAD PEGAWAI + AUTOCOMPLETE ==================
+  const pegawaiInput = document.getElementById("pegawai-input");
+  const pegawaiSuggestions = document.getElementById("pegawai-suggestions");
+  const pegawaiIdInput = document.getElementById("pegawai-id");
   let pegawaiAll = [];
 
-  function renderPegawaiOptions(filterText) {
-    const q = (filterText || "").trim().toLowerCase();
-    pegawaiSelect.innerHTML = `<option value="">Pilih Nama</option>`;
-
-    pegawaiAll
-      .filter(p => !q || p.nama.toLowerCase().includes(q))
-      .forEach(p => {
-        const opt = document.createElement("option");
-        opt.value = p.id;
-        opt.textContent = p.nama;
-        pegawaiSelect.appendChild(opt);
-      });
-  }
-
-  pegawaiSearchInput.addEventListener("input", () => {
-    renderPegawaiOptions(pegawaiSearchInput.value);
-    pegawaiSelect.value = "";
-  });
-
   async function loadPegawai() {
-    pegawaiSelect.innerHTML = `<option value="">Memuat...</option>`;
-
     const { data, error } = await supabaseClient
       .from("pegawai")
       .select("id, nama")
@@ -594,19 +595,64 @@
 
     if (error) {
       console.error(error);
-      pegawaiSelect.innerHTML = `<option value="">Gagal memuat pegawai</option>`;
       showToast("Gagal memuat daftar pegawai", "error");
       return;
     }
 
-    if (!data || data.length === 0) {
-      pegawaiSelect.innerHTML = `<option value="">Belum ada data pegawai</option>`;
+    pegawaiAll = data || [];
+  }
+
+  function filterPegawai(query) {
+    const q = query.trim().toLowerCase();
+    if (!q) return pegawaiAll.slice(0, 20); // kalau kosong, tampil 20 teratas
+    return pegawaiAll
+      .filter(p => p.nama.toLowerCase().includes(q))
+      .slice(0, 20);
+  }
+
+  function renderPegawaiSuggestions(query) {
+    const results = filterPegawai(query);
+    pegawaiSuggestions.innerHTML = "";
+
+    if (results.length === 0) {
+      pegawaiSuggestions.style.display = "none";
       return;
     }
 
-    pegawaiAll = data;
-    renderPegawaiOptions("");
+    results.forEach(p => {
+      const item = document.createElement("div");
+      item.className = "suggestion-item";
+      item.textContent = p.nama;
+      item.addEventListener("mousedown", () => {
+        // pilih nama
+        pegawaiInput.value = p.nama;
+        pegawaiIdInput.value = p.id;
+        pegawaiSuggestions.style.display = "none";
+      });
+      pegawaiSuggestions.appendChild(item);
+    });
+
+    pegawaiSuggestions.style.display = "block";
   }
+
+  pegawaiInput.addEventListener("input", () => {
+    pegawaiIdInput.value = ""; // reset id kalau user ngetik ulang
+    renderPegawaiSuggestions(pegawaiInput.value);
+  });
+
+  pegawaiInput.addEventListener("focus", () => {
+    if (pegawaiInput.value.trim()) {
+      renderPegawaiSuggestions(pegawaiInput.value);
+    }
+  });
+
+  pegawaiInput.addEventListener("blur", () => {
+    // kasih jeda dikit supaya click masih kebaca
+    setTimeout(() => {
+      pegawaiSuggestions.style.display = "none";
+    }, 150);
+  });
+
 
   // ================== SUBMIT TILAWAH ==================
   const tilawahForm = document.getElementById("tilawah-form");
@@ -614,7 +660,7 @@
   tilawahForm.addEventListener("submit", async (e) => {
     e.preventDefault();
 
-    const pegawaiId = pegawaiSelect.value;
+    const pegawaiId = pegawaiIdInput.value;
     const tanggal = tanggalInput.value;
     const juz = juzSelect.value;
 
