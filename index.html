@@ -415,13 +415,32 @@
         </div>
 
         <div class="summary-filters">
-          <div class="field" style="flex:1; min-width: 170px;">
+          <div class="field" style="flex:1; min-width: 140px;">
             <label for="bulan">Bulan:</label>
             <input type="month" id="bulan" />
           </div>
-          <button id="btn-refresh-summary" class="btn-ghost">
-            🔄 Refresh
-          </button>
+        
+          <div style="display:flex; flex-direction:column; gap:6px; align-items:flex-end;">
+            <button id="btn-refresh-summary" class="btn-ghost">
+              🔄 Refresh
+            </button>
+        
+            <div style="display:flex; gap:6px; flex-wrap:wrap; justify-content:flex-end;">
+              <button id="btn-download-rekap" class="btn-ghost">
+                ⬇️ Download Rekap
+              </button>
+        
+              <button id="btn-upload-revisi" class="btn-ghost">
+                ⬆️ Upload Revisi
+              </button>
+        
+              <!-- input file disembunyikan, dipicu oleh tombol Upload Revisi -->
+              <input type="file"
+                     id="file-revisi"
+                     accept=".csv"
+                     style="display:none;" />
+            </div>
+          </div>
         </div>
 
         <div class="summary-list" id="summary-list">
@@ -596,6 +615,21 @@
       minute: "2-digit"
     });
   }
+  function getMonthRange(monthValue) {
+    // monthValue: "2025-11"
+    if (!monthValue) return null;
+    const [year, month] = monthValue.split("-");
+    const firstDay = `${year}-${month}-01`;
+  
+    const monthInt = parseInt(month, 10);
+    const yearInt = parseInt(year, 10);
+    const nextMonth = monthInt === 12 ? 1 : monthInt + 1;
+    const nextYear = monthInt === 12 ? yearInt + 1 : yearInt;
+    const nextMonthStr = String(nextMonth).padStart(2, "0");
+    const firstDayNextMonth = `${nextYear}-${nextMonthStr}-01`;
+  
+    return { firstDay, firstDayNextMonth };
+  }
 
   async function loadSummary() {
     const monthValue = bulanInput.value;
@@ -663,7 +697,229 @@
       }
 
   btnRefreshSummary.addEventListener("click", loadSummary);
+    const btnDownloadRekap = document.getElementById("btn-download-rekap");
+  btnDownloadRekap.addEventListener("click", downloadRekap);
 
+  
+  async function downloadRekap() {
+    const monthValue = bulanInput.value;
+    if (!monthValue) {
+      showToast("Pilih bulan terlebih dahulu", "error");
+      return;
+    }
+  
+    const range = getMonthRange(monthValue);
+    if (!range) {
+      showToast("Format bulan tidak valid", "error");
+      return;
+    }
+  
+    const { firstDay, firstDayNextMonth } = range;
+  
+    // Ambil semua laporan tilawah di bulan tersebut
+    const { data, error } = await supabaseClient
+      .from("laporan_tilawah")
+      .select(`
+        tanggal_setoran,
+        juz,
+        pegawai:pegawai_id (
+          nip,
+          nama
+        )
+      `)
+      .gte("tanggal_setoran", firstDay)
+      .lt("tanggal_setoran", firstDayNextMonth)
+      .order("tanggal_setoran", { ascending: true });
+  
+    if (error) {
+      console.error(error);
+      showToast("Gagal memuat data rekap", "error");
+      return;
+    }
+  
+    if (!data || data.length === 0) {
+      showToast("Belum ada data untuk bulan ini", "error");
+      return;
+    }
+  
+    // Susun CSV
+    let csv = "pegawai_nip,pegawai_nama,unit,tanggal_setoran,juz\n";
+  
+    data.forEach(row => {
+      const nip = (row.pegawai && row.pegawai.nip) ? row.pegawai.nip : "";
+      const nama = (row.pegawai && row.pegawai.nama) ? row.pegawai.nama : "";
+      const tgl = row.tanggal_setoran;
+      const juz = row.juz;
+  
+      // Sederhana: jika ada koma dalam teks, bungkus dengan tanda kutip
+      function esc(val) {
+        const v = val || "";
+        if (String(v).includes(",")) {
+          return `"${String(v).replace(/"/g, '""')}"`;
+        }
+        return String(v);
+      }
+  
+      csv += [
+        esc(nip),
+        esc(nama),
+        esc(unit),
+        esc(tgl),
+        esc(juz)
+      ].join(",") + "\n";
+    });
+  
+    // Buat file dan trigger download
+    const blob = new Blob([csv], { type: "text/csv;charset=utf-8;" });
+    const url = URL.createObjectURL(blob);
+  
+    const [year, month] = monthValue.split("-");
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = `rekap-tilawah-${year}-${month}.csv`;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+  
+    showToast("Rekap berhasil didownload");
+  }
+    const btnUploadRevisi = document.getElementById("btn-upload-revisi");
+    const fileRevisiInput = document.getElementById("file-revisi");
+    
+    btnUploadRevisi.addEventListener("click", () => {
+      const monthValue = bulanInput.value;
+      if (!monthValue) {
+        showToast("Pilih bulan dulu sebelum upload revisi", "error");
+        return;
+      }
+      fileRevisiInput.value = ""; // reset input
+      fileRevisiInput.click();
+    });
+    
+    fileRevisiInput.addEventListener("change", async () => {
+      const file = fileRevisiInput.files[0];
+      if (!file) return;
+    
+      const monthValue = bulanInput.value;
+      const range = getMonthRange(monthValue);
+      if (!range) {
+        showToast("Format bulan tidak valid", "error");
+        return;
+      }
+    
+      if (!confirm("Revisi akan mengganti seluruh data laporan bulan ini dengan isi file CSV. Lanjutkan?")) {
+        return;
+      }
+    
+      try {
+        const text = await file.text();
+        await processRevisiCSV(text, range);
+        showToast("Revisi berhasil diupload");
+        await loadSummary(); // refresh tampilan
+      } catch (err) {
+        console.error(err);
+        showToast("Gagal memproses revisi: " + err.message, "error");
+      }
+    });
+  
+      async function processRevisiCSV(csvText, range) {
+        const { firstDay, firstDayNextMonth } = range;
+      
+        // 1) Parse CSV sederhana
+        const lines = csvText.trim().split(/\r?\n/);
+        if (lines.length < 2) {
+          throw new Error("File kosong atau tidak ada data");
+        }
+      
+        const header = lines[0].split(",");
+        const idxNip   = header.indexOf("pegawai_nip");
+        const idxNama  = header.indexOf("pegawai_nama");
+        const idxTgl   = header.indexOf("tanggal_setoran");
+        const idxJuz   = header.indexOf("juz");
+      
+        if (idxNip === -1 || idxTgl === -1 || idxJuz === -1) {
+          throw new Error('Header harus mengandung: pegawai_nip, tanggal_setoran, juz');
+        }
+      
+        // 2) Ambil semua pegawai untuk mapping nip -> id
+        const { data: pegawaiData, error: pegawaiError } = await supabaseClient
+          .from("pegawai")
+          .select("id, nip");
+      
+        if (pegawaiError) {
+          console.error(pegawaiError);
+          throw new Error("Gagal memuat data pegawai");
+        }
+      
+        const pegawaiMap = {};
+        (pegawaiData || []).forEach(p => {
+          if (p.nip) {
+            pegawaiMap[p.nip.trim()] = p.id;
+          }
+        });
+      
+        // 3) Susun array data laporan baru
+        const reports = [];
+      
+        for (let i = 1; i < lines.length; i++) {
+          const line = lines[i].trim();
+          if (!line) continue;
+      
+          const cols = line.split(",");
+          const nip = (cols[idxNip] || "").trim();
+          const tgl = (cols[idxTgl] || "").trim();
+          const juzStr = (cols[idxJuz] || "").trim();
+      
+          if (!nip || !tgl || !juzStr) {
+            throw new Error(`Baris ${i + 1}: data tidak lengkap`);
+          }
+      
+          const pegawaiId = pegawaiMap[nip];
+          if (!pegawaiId) {
+            throw new Error(`Baris ${i + 1}: NIP ${nip} tidak ditemukan di tabel pegawai`);
+          }
+      
+          const juz = parseInt(juzStr, 10);
+          if (isNaN(juz) || juz < 1 || juz > 30) {
+            throw new Error(`Baris ${i + 1}: juz tidak valid (${juzStr})`);
+          }
+      
+          // Tanggal boleh di luar range bulan, tapi idealnya sesuai.
+          reports.push({
+            pegawai_id: pegawaiId,
+            tanggal_setoran: tgl,
+            juz: juz
+          });
+        }
+      
+        if (reports.length === 0) {
+          throw new Error("Tidak ada baris data yang valid");
+        }
+      
+        // 4) Hapus dulu laporan bulan ini
+        const { error: delError } = await supabaseClient
+          .from("laporan_tilawah")
+          .delete()
+          .gte("tanggal_setoran", firstDay)
+          .lt("tanggal_setoran", firstDayNextMonth);
+      
+        if (delError) {
+          console.error(delError);
+          throw new Error("Gagal menghapus data lama bulan ini");
+        }
+      
+        // 5) Insert data baru (batch)
+        const { error: insError } = await supabaseClient
+          .from("laporan_tilawah")
+          .insert(reports);
+      
+        if (insError) {
+          console.error(insError);
+          throw new Error("Gagal menyimpan data revisi");
+        }
+      }
+ 
   // ================== INITIAL LOAD ==================
   (async function init() {
     await loadPegawai();
