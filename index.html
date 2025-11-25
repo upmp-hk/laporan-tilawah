@@ -572,38 +572,62 @@
     tanggalInput.value = `${yyyy}-${mm}-${dd}`;
   })();
 
-  // ================== LOAD PEGAWAI ==================
-  const pegawaiSelect = document.getElementById("pegawai");
+    // ================== LOAD PEGAWAI ==================
+    const pegawaiSelect = document.getElementById("pegawai");
+    const pegawaiSearchInput = document.getElementById("pegawai-search");
+  
+    // menyimpan semua pegawai yang di-load dari Supabase
+    let pegawaiAll = [];
 
-  async function loadPegawai() {
-    pegawaiSelect.innerHTML = `<option value="">Memuat...</option>`;
+    async function loadPegawai() {
+      pegawaiSelect.innerHTML = `<option value="">Memuat...</option>`;
+    
+      const { data, error } = await supabaseClient
+        .from("pegawai")
+        .select("id, nama")
+        .eq("is_active", true)
+        .order("nama", { ascending: true });
+    
+      if (error) {
+        console.error(error);
+        pegawaiSelect.innerHTML = `<option value="">Gagal memuat pegawai</option>`;
+        showToast("Gagal memuat daftar pegawai", "error");
+        return;
+      }
+    
+      if (!data || data.length === 0) {
+        pegawaiSelect.innerHTML = `<option value="">Belum ada data pegawai</option>`;
+        return;
+      }
+  
+        function renderPegawaiOptions(filterText) {
+        const q = (filterText || "").trim().toLowerCase();
+      
+        pegawaiSelect.innerHTML = `<option value="">Pilih Nama</option>`;
+      
+        pegawaiAll
+          .filter(p => !q || p.nama.toLowerCase().includes(q))
+          .forEach(p => {
+            const opt = document.createElement("option");
+            opt.value = p.id;
+            opt.textContent = p.nama;
+            pegawaiSelect.appendChild(opt);
+          });
+      }
 
-    const { data, error } = await supabaseClient
-      .from("pegawai")
-      .select("id, nama")
-      .eq("is_active", true)
-      .order("nama", { ascending: true });
+          pegawaiSearchInput.addEventListener("input", () => {
+        renderPegawaiOptions(pegawaiSearchInput.value);
+      
+        // opsional: setiap kali filter, kosongkan pilihan yang lama
+        pegawaiSelect.value = "";
+      });
 
-    if (error) {
-      console.error(error);
-      pegawaiSelect.innerHTML = `<option value="">Gagal memuat pegawai</option>`;
-      showToast("Gagal memuat daftar pegawai", "error");
-      return;
+      // simpan semua pegawai di memori
+      pegawaiAll = data;
+    
+      // render awal: tanpa filter
+      renderPegawaiOptions("");
     }
-
-    if (!data || data.length === 0) {
-      pegawaiSelect.innerHTML = `<option value="">Belum ada data pegawai</option>`;
-      return;
-    }
-
-    pegawaiSelect.innerHTML = `<option value="">Pilih Nama</option>`;
-    data.forEach(p => {
-      const opt = document.createElement("option");
-      opt.value = p.id;
-      opt.textContent = p.nama;
-      pegawaiSelect.appendChild(opt);
-    });
-  }
 
   // ================== SUBMIT TILAWAH ==================
   const tilawahForm = document.getElementById("tilawah-form");
