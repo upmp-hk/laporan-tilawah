@@ -743,7 +743,7 @@
     }
   
     // Susun CSV
-    let csv = "pegawai_nip,pegawai_nama,unit,tanggal_setoran,juz\n";
+    let csv = "pegawai_nip,pegawai_nama,tanggal_setoran,juz\n";
   
     data.forEach(row => {
       const nip = (row.pegawai && row.pegawai.nip) ? row.pegawai.nip : "";
