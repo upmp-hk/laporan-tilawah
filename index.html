@@ -257,36 +257,36 @@
       display: flex;
     }
 
-.summary-filters {
-  display: block;          /* cukup satu kolom */
-  margin-bottom: 8px;
-}
-
-.month-field {
-  flex: 1;
-}
-
-.month-row {
-  display: flex;
-  gap: 8px;
-  align-items: center;
-}
-
-.month-row input[type="month"] {
-  flex: 1;
-}
-
-.btn-inline {
-  white-space: nowrap;
-}
-
-/* tombol Download & Upload di bawah bulan */
-.summary-actions {
-  display: flex;
-  gap: 8px;
-  flex-wrap: wrap;
-  margin-bottom: 8px;
-}
+    .summary-filters {
+      display: block;          /* cukup satu kolom */
+      margin-bottom: 8px;
+    }
+    
+    .month-field {
+      flex: 1;
+    }
+    
+    .month-row {
+      display: flex;
+      gap: 8px;
+      align-items: center;
+    }
+    
+    .month-row input[type="month"] {
+      flex: 1;
+    }
+    
+    .btn-inline {
+      white-space: nowrap;
+    }
+    
+    /* tombol Download & Upload di bawah bulan */
+    .summary-actions {
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
+      margin-bottom: 8px;
+    }
 
     .summary-list {
       max-height: 320px;
@@ -323,6 +323,42 @@
     .summary-right {
       text-align: right;
       font-size: 0.78rem;
+    }
+    .summary-actions {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 8px;
+      width: 100%;
+    }
+    
+    /* kiri & kanan */
+    .action-left {
+      margin-right: auto;
+    }
+    
+    .action-right {
+      margin-left: auto;
+    }
+    
+    /* biar tetap fleksibel di mobile */
+    @media (max-width: 480px) {
+      .summary-actions {
+        flex-wrap: wrap;
+        gap: 6px;
+      }
+    
+      .action-left,
+      .action-right {
+        margin: 0;
+        flex: 1;
+      }
+    
+      /* di HP jadi dua tombol full-width */
+      .action-left,
+      .action-right {
+        text-align: center;
+      }
     }
 
     .badge-rank {
@@ -437,39 +473,39 @@
           <span class="pill">Mode View</span>
         </div>
 
- <div class="summary-filters">
-  <div class="field month-field">
-    <label for="bulan">Bulan:</label>
-    <div class="month-row">
-      <input type="month" id="bulan" />
-      <button id="btn-refresh-summary" class="btn-ghost btn-inline">
-        🔄 Refresh
-      </button>
-    </div>
-  </div>
-</div>
-
-<div class="summary-actions">
-  <button id="btn-download-rekap" class="btn-ghost">
-    ⬇️ Download Rekap
-  </button>
-
-  <button id="btn-upload-revisi" class="btn-ghost">
-    ⬆️ Upload Revisi
-  </button>
-
-  <!-- input file disembunyikan, dipicu oleh tombol Upload Revisi -->
-  <input type="file"
-         id="file-revisi"
-         accept=".csv"
-         style="display:none;" />
-</div>
-
-<div class="summary-list" id="summary-list">
-  <div class="empty-state">
-    Pilih bulan untuk menampilkan capaian tilawah.
-  </div>
-</div>
+        <div class="summary-filters">
+          <div class="field month-field">
+            <label for="bulan">Bulan:</label>
+            <div class="month-row">
+              <input type="month" id="bulan" />
+              <button id="btn-refresh-summary" class="btn-ghost btn-inline">
+                🔄 Refresh
+              </button>
+            </div>
+          </div>
+        </div>
+        
+        <!-- Tombol kiri-kanan -->
+        <div class="summary-actions">
+          <button id="btn-download-rekap" class="btn-ghost action-left">
+            ⬇️ Download Rekap
+          </button>
+        
+          <button id="btn-upload-revisi" class="btn-ghost action-right">
+            ⬆️ Upload Revisi
+          </button>
+        
+          <input type="file"
+                 id="file-revisi"
+                 accept=".csv"
+                 style="display:none;" />
+        </div>
+        
+        <div class="summary-list" id="summary-list">
+          <div class="empty-state">
+            Pilih bulan untuk menampilkan capaian tilawah.
+          </div>
+        </div>
 
         <div class="summary-list" id="summary-list">
           <div class="empty-state">
