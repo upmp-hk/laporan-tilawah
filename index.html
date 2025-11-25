@@ -361,15 +361,6 @@
       }
     }
 
-    .badge-rank {
-      font-size: 0.65rem;
-      padding: 2px 6px;
-      border-radius: 999px;
-      border: 1px solid rgba(37, 99, 235, 0.3);
-      background: rgba(37, 99, 235, 0.06);
-      margin-left: 4px;
-    }
-
     .empty-state {
       font-size: 0.8rem;
       color: #6b7280;
@@ -726,39 +717,34 @@
     }
 
     summaryListEl.innerHTML = "";
-    data.forEach((row, index) => {
+    data.forEach((row) => {
       const div = document.createElement("div");
       div.className = "summary-item";
-
-      let rankBadge = "";
-      if (index === 0) rankBadge = `<span class="badge-rank">#1 🌟</span>`;
-      else if (index === 1) rankBadge = `<span class="badge-rank">#2</span>`;
-      else if (index === 2) rankBadge = `<span class="badge-rank">#3</span>`;
-
-    const rincianJuz = Array.isArray(row.juz_list) && row.juz_list.length > 0
-      ? row.juz_list.join(", ")
-      : "-";
     
-          div.innerHTML = `
-            <div class="summary-left">
-              <span class="summary-name">${row.nama} ${rankBadge}</span>
-              <span class="summary-meta">
-                Total juz: <strong>${row.total_juz}</strong>
-              </span>
-              <span class="summary-meta">
-                Rincian juz: ${rincianJuz}
-              </span>
-            </div>
-            <div class="summary-right">
-              <div class="chip">
-                ⏱ tercepat: ${row.waktu_tercepat ? formatTime(row.waktu_tercepat) : "-"}
-              </div>
-            </div>
-          `;
+      const rincianJuz = Array.isArray(row.juz_list) && row.juz_list.length > 0
+        ? row.juz_list.join(", ")
+        : "-";
     
-          summaryListEl.appendChild(div);
-        });
-      }
+      div.innerHTML = `
+        <div class="summary-left">
+          <span class="summary-name">${row.nama}</span>
+          <span class="summary-meta">
+            Total juz: <strong>${row.total_juz}</strong>
+          </span>
+          <span class="summary-meta">
+            Rincian juz: ${rincianJuz}
+          </span>
+        </div>
+        <div class="summary-right">
+          <div class="chip">
+            ⏱ tercepat: ${row.waktu_tercepat ? formatTime(row.waktu_tercepat) : "-"}
+          </div>
+        </div>
+      `;
+    
+      summaryListEl.appendChild(div);
+    });
+
 
   btnRefreshSummary.addEventListener("click", loadSummary);
     const btnDownloadRekap = document.getElementById("btn-download-rekap");
