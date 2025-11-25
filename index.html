@@ -669,25 +669,54 @@
       return;
     }
 
+    const juzInt = parseInt(juz, 10);
+
+    // 1) Cek dulu apakah sudah ada data dengan kombinasi yang sama
+    const { data: existing, error: checkError } = await supabaseClient
+      .from("laporan_tilawah")
+      .select("id")
+      .eq("pegawai_id", pegawaiId)
+      .eq("tanggal_setoran", tanggal)
+      .eq("juz", juzInt)
+      .limit(1);
+
+    if (checkError) {
+      console.error(checkError);
+      showToast("Gagal mengecek duplikasi data", "error");
+      return;
+    }
+
+    if (existing && existing.length > 0) {
+      showToast("Laporan juz ini pada tanggal tersebut sudah ada.", "error");
+      return;
+    }
+
+    // 2) Kalau belum ada, baru insert
     const { error } = await supabaseClient
       .from("laporan_tilawah")
       .insert([
         {
           pegawai_id: pegawaiId,
           tanggal_setoran: tanggal,
-          juz: parseInt(juz, 10)
+          juz: juzInt
         }
       ]);
 
     if (error) {
       console.error(error);
-      showToast("Gagal menyimpan laporan", "error");
+      // tambahan: kalau nanti ada unique constraint di DB
+      if (error.code === "23505") {
+        showToast("Laporan juz ini pada tanggal tersebut sudah ada.", "error");
+      } else {
+        showToast("Gagal menyimpan laporan", "error");
+      }
       return;
     }
 
     showToast("Laporan tilawah tersimpan");
     juzSelect.value = "";
   });
+
 
   // ================== SUMMARY (CAPAIAN BULANAN) ==================
   const bulanInput = document.getElementById("bulan");
