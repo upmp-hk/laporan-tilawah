@@ -24,6 +24,10 @@
       --shadow-soft: 0 8px 20px rgba(15, 23, 42, 0.08);
     }
 
+    html {
+      font-size: 17px; /* sedikit lebih besar dari default browser */
+    }
+
     * {
       box-sizing: border-box;
       font-family: system-ui, -apple-system, BlinkMacSystemFont, "Inter", sans-serif;
@@ -67,7 +71,7 @@
     }
 
     .app-title {
-      font-size: 1.2rem;
+      font-size: 1.35rem;
       font-weight: 700;
       margin: 0;
       display: flex;
@@ -76,7 +80,7 @@
     }
 
     .app-badge {
-      font-size: 0.7rem;
+      font-size: 0.8rem;
       padding: 2px 8px;
       border-radius: 999px;
       background: rgba(255, 255, 255, 0.2);
@@ -84,7 +88,7 @@
     }
 
     .app-subtitle {
-      font-size: 0.8rem;
+      font-size: 0.9rem;
       opacity: 0.9;
       margin-top: 4px;
       margin-bottom: 8px;
@@ -104,7 +108,7 @@
       border: none;
       background: transparent;
       color: #e5f0ff;
-      font-size: 0.8rem;
+      font-size: 0.9rem;
       padding: 6px 10px;
       border-radius: 999px;
       cursor: pointer;
@@ -143,7 +147,7 @@
     }
 
     .card-title {
-      font-size: 0.95rem;
+      font-size: 1.05rem;
       font-weight: 600;
       display: flex;
       align-items: center;
@@ -151,12 +155,12 @@
     }
 
     .card-subtitle {
-      font-size: 0.75rem;
+      font-size: 0.85rem;
       color: #6b7280;
     }
 
     .pill {
-      font-size: 0.7rem;
+      font-size: 0.8rem;
       padding: 2px 8px;
       border-radius: 999px;
       border: 1px solid var(--border);
@@ -178,7 +182,7 @@
     }
 
     .field label {
-      font-size: 0.8rem;
+      font-size: 0.9rem;
       color: #374151;
       font-weight: 500;
     }
@@ -188,7 +192,7 @@
       border-radius: 999px;
       border: 1px solid var(--border);
       padding: 8px 12px;
-      font-size: 0.85rem;
+      font-size: 0.95rem;
       outline: none;
       background: #f9fafb;
     }
@@ -204,7 +208,7 @@
       border-radius: 999px;
       border: none;
       padding: 9px 14px;
-      font-size: 0.9rem;
+      font-size: 1rem;
       font-weight: 600;
       color: var(--white);
       background: linear-gradient(135deg, var(--blue), var(--green));
@@ -226,13 +230,13 @@
       border-radius: 999px;
       border: 1px dashed var(--border);
       padding: 6px 10px;
-      font-size: 0.8rem;
+      font-size: 0.9rem;
       background: #f9fafb;
       cursor: pointer;
     }
 
     .helper-text {
-      font-size: 0.7rem;
+      font-size: 0.8rem;
       color: #6b7280;
     }
 
@@ -244,7 +248,7 @@
       background: var(--dark);
       color: var(--white);
       padding: 8px 14px;
-      font-size: 0.8rem;
+      font-size: 0.9rem;
       border-radius: 999px;
       display: none;
       align-items: center;
@@ -274,6 +278,7 @@
 
     .month-row input[type="month"] {
       flex: 1;
+      font-size: 0.95rem;
     }
 
     .btn-inline {
@@ -333,22 +338,22 @@
     }
 
     .summary-name {
-      font-size: 0.85rem;
+      font-size: 0.95rem;
       font-weight: 600;
     }
 
     .summary-meta {
-      font-size: 0.72rem;
+      font-size: 0.85rem;
       color: #6b7280;
     }
 
     .summary-right {
       text-align: right;
-      font-size: 0.78rem;
+      font-size: 0.9rem;
     }
 
     .empty-state {
-      font-size: 0.8rem;
+      font-size: 0.9rem;
       color: #6b7280;
       text-align: center;
       padding: 12px 8px;
@@ -358,13 +363,14 @@
       display: inline-flex;
       align-items: center;
       gap: 4px;
-      font-size: 0.7rem;
+      font-size: 0.8rem;
       padding: 2px 8px;
       border-radius: 999px;
       background: rgba(16, 185, 129, 0.06);
       border: 1px solid rgba(16, 185, 129, 0.3);
       color: #047857;
     }
+
     .suggestions {
       margin-top: 4px;
       border-radius: 16px;
@@ -373,15 +379,15 @@
       max-height: 200px;
       overflow-y: auto;
       box-shadow: 0 8px 20px rgba(15, 23, 42, 0.08);
-      font-size: 0.8rem;
+      font-size: 0.9rem;
       z-index: 10;
     }
-    
+
     .suggestion-item {
       padding: 6px 10px;
       cursor: pointer;
     }
-    
+
     .suggestion-item:hover {
       background: var(--blue-soft);
     }
@@ -437,27 +443,27 @@
             <div id="pegawai-suggestions" class="suggestions" style="display:none;"></div>
             <input type="hidden" id="pegawai-id" />
           </div>
-        
+
           <div class="field">
             <label for="tanggal">Tanggal Tilawah:</label>
             <input type="date" id="tanggal" required />
           </div>
-        
+
           <div class="field">
             <label for="juz">Juz yang dibaca:</label>
             <select id="juz" required>
               <option value="">Pilih Juz</option>
             </select>
           </div>
-        
+
           <button type="submit" class="btn-primary">
             Kirim Laporan
           </button>
-        
+
           <p class="helper-text">
             Sistem akan mencatat waktu submit sebagai referensi “waktu tilawah tercepat” per bulan.
           </p>
-        </form>      
+        </form>
       </div>
     </section>
 
@@ -604,7 +610,7 @@
 
   function filterPegawai(query) {
     const q = query.trim().toLowerCase();
-    if (!q) return pegawaiAll.slice(0, 20); // kalau kosong, tampil 20 teratas
+    if (!q) return pegawaiAll.slice(0, 20);
     return pegawaiAll
       .filter(p => p.nama.toLowerCase().includes(q))
       .slice(0, 20);
@@ -624,7 +630,6 @@
       item.className = "suggestion-item";
       item.textContent = p.nama;
       item.addEventListener("mousedown", () => {
-        // pilih nama
         pegawaiInput.value = p.nama;
         pegawaiIdInput.value = p.id;
         pegawaiSuggestions.style.display = "none";
@@ -636,7 +641,7 @@
   }
 
   pegawaiInput.addEventListener("input", () => {
-    pegawaiIdInput.value = ""; // reset id kalau user ngetik ulang
+    pegawaiIdInput.value = "";
     renderPegawaiSuggestions(pegawaiInput.value);
   });
 
@@ -647,12 +652,10 @@
   });
 
   pegawaiInput.addEventListener("blur", () => {
-    // kasih jeda dikit supaya click masih kebaca
     setTimeout(() => {
       pegawaiSuggestions.style.display = "none";
     }, 150);
   });
-
 
   // ================== SUBMIT TILAWAH ==================
   const tilawahForm = document.getElementById("tilawah-form");
@@ -671,7 +674,6 @@
 
     const juzInt = parseInt(juz, 10);
 
-    // 1) Cek dulu apakah sudah ada data dengan kombinasi yang sama
     const { data: existing, error: checkError } = await supabaseClient
       .from("laporan_tilawah")
       .select("id")
@@ -691,7 +693,6 @@
       return;
     }
 
-    // 2) Kalau belum ada, baru insert
     const { error } = await supabaseClient
       .from("laporan_tilawah")
       .insert([
@@ -704,7 +705,6 @@
 
     if (error) {
       console.error(error);
-      // tambahan: kalau nanti ada unique constraint di DB
       if (error.code === "23505") {
         showToast("Laporan juz ini pada tanggal tersebut sudah ada.", "error");
       } else {
@@ -716,7 +716,6 @@
     showToast("Laporan tilawah tersimpan");
     juzSelect.value = "";
   });
-
 
   // ================== SUMMARY (CAPAIAN BULANAN) ==================
   const bulanInput = document.getElementById("bulan");
