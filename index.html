@@ -257,13 +257,36 @@
       display: flex;
     }
 
-    .summary-filters {
-      display: flex;
-      gap: 8px;
-      align-items: center;
-      margin-bottom: 8px;
-      flex-wrap: wrap;
-    }
+.summary-filters {
+  display: block;          /* cukup satu kolom */
+  margin-bottom: 8px;
+}
+
+.month-field {
+  flex: 1;
+}
+
+.month-row {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+}
+
+.month-row input[type="month"] {
+  flex: 1;
+}
+
+.btn-inline {
+  white-space: nowrap;
+}
+
+/* tombol Download & Upload di bawah bulan */
+.summary-actions {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+  margin-bottom: 8px;
+}
 
     .summary-list {
       max-height: 320px;
@@ -414,34 +437,39 @@
           <span class="pill">Mode View</span>
         </div>
 
-        <div class="summary-filters">
-          <div class="field" style="flex:1; min-width: 140px;">
-            <label for="bulan">Bulan:</label>
-            <input type="month" id="bulan" />
-          </div>
-        
-          <div style="display:flex; flex-direction:column; gap:6px; align-items:flex-end;">
-            <button id="btn-refresh-summary" class="btn-ghost">
-              🔄 Refresh
-            </button>
-        
-            <div style="display:flex; gap:6px; flex-wrap:wrap; justify-content:flex-end;">
-              <button id="btn-download-rekap" class="btn-ghost">
-                ⬇️ Download Rekap
-              </button>
-        
-              <button id="btn-upload-revisi" class="btn-ghost">
-                ⬆️ Upload Revisi
-              </button>
-        
-              <!-- input file disembunyikan, dipicu oleh tombol Upload Revisi -->
-              <input type="file"
-                     id="file-revisi"
-                     accept=".csv"
-                     style="display:none;" />
-            </div>
-          </div>
-        </div>
+ <div class="summary-filters">
+  <div class="field month-field">
+    <label for="bulan">Bulan:</label>
+    <div class="month-row">
+      <input type="month" id="bulan" />
+      <button id="btn-refresh-summary" class="btn-ghost btn-inline">
+        🔄 Refresh
+      </button>
+    </div>
+  </div>
+</div>
+
+<div class="summary-actions">
+  <button id="btn-download-rekap" class="btn-ghost">
+    ⬇️ Download Rekap
+  </button>
+
+  <button id="btn-upload-revisi" class="btn-ghost">
+    ⬆️ Upload Revisi
+  </button>
+
+  <!-- input file disembunyikan, dipicu oleh tombol Upload Revisi -->
+  <input type="file"
+         id="file-revisi"
+         accept=".csv"
+         style="display:none;" />
+</div>
+
+<div class="summary-list" id="summary-list">
+  <div class="empty-state">
+    Pilih bulan untuk menampilkan capaian tilawah.
+  </div>
+</div>
 
         <div class="summary-list" id="summary-list">
           <div class="empty-state">
