@@ -41,7 +41,7 @@
 
     .app-shell {
       width: 100%;
-      max-width: 480px; /* mobile card */
+      max-width: 480px;
       background: rgba(255, 255, 255, 0.9);
       backdrop-filter: blur(10px);
       margin: 12px;
@@ -258,34 +258,56 @@
     }
 
     .summary-filters {
-      display: block;          /* cukup satu kolom */
+      display: block;
       margin-bottom: 8px;
     }
-    
+
     .month-field {
       flex: 1;
     }
-    
+
     .month-row {
       display: flex;
       gap: 8px;
       align-items: center;
     }
-    
+
     .month-row input[type="month"] {
       flex: 1;
     }
-    
+
     .btn-inline {
       white-space: nowrap;
     }
-    
-    /* tombol Download & Upload di bawah bulan */
+
     .summary-actions {
       display: flex;
-      gap: 8px;
-      flex-wrap: wrap;
+      justify-content: space-between;
+      align-items: center;
       margin-bottom: 8px;
+      width: 100%;
+    }
+
+    .action-left {
+      margin-right: auto;
+    }
+
+    .action-right {
+      margin-left: auto;
+    }
+
+    @media (max-width: 480px) {
+      .summary-actions {
+        flex-wrap: wrap;
+        gap: 6px;
+      }
+
+      .action-left,
+      .action-right {
+        margin: 0;
+        flex: 1;
+        text-align: center;
+      }
     }
 
     .summary-list {
@@ -323,42 +345,6 @@
     .summary-right {
       text-align: right;
       font-size: 0.78rem;
-    }
-    .summary-actions {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      margin-bottom: 8px;
-      width: 100%;
-    }
-    
-    /* kiri & kanan */
-    .action-left {
-      margin-right: auto;
-    }
-    
-    .action-right {
-      margin-left: auto;
-    }
-    
-    /* biar tetap fleksibel di mobile */
-    @media (max-width: 480px) {
-      .summary-actions {
-        flex-wrap: wrap;
-        gap: 6px;
-      }
-    
-      .action-left,
-      .action-right {
-        margin: 0;
-        flex: 1;
-      }
-    
-      /* di HP jadi dua tombol full-width */
-      .action-left,
-      .action-right {
-        text-align: center;
-      }
     }
 
     .empty-state {
@@ -420,13 +406,6 @@
 
         <form id="tilawah-form">
           <div class="field">
-            <label for="pegawai">Nama Lengkap:</label>
-            <select id="pegawai" required>
-              <option value="">Memuat daftar pegawai...</option>
-            </select>
-          </div>
-
-          <div class="field">
             <label for="pegawai-search">Nama Lengkap:</label>
             <input
               type="text"
@@ -435,6 +414,18 @@
             />
             <select id="pegawai" required>
               <option value="">Memuat daftar pegawai...</option>
+            </select>
+          </div>
+
+          <div class="field">
+            <label for="tanggal">Tanggal Tilawah:</label>
+            <input type="date" id="tanggal" required />
+          </div>
+
+          <div class="field">
+            <label for="juz">Juz yang dibaca:</label>
+            <select id="juz" required>
+              <option value="">Pilih Juz</option>
             </select>
           </div>
 
@@ -458,7 +449,7 @@
               Capaian Tilawah Bulanan
             </div>
             <div class="card-subtitle">
-              Daftar pegawai, jumlah juz dan rinciannya, serta fitur untuk mendownload/merevisi data.
+              Daftar pegawai, jumlah juz dan rinciannya, serta fitur download/revisi data.
             </div>
           </div>
           <span class="pill">View</span>
@@ -475,28 +466,28 @@
             </div>
           </div>
         </div>
-        
-        <!-- Tombol kiri-kanan -->
+
         <div class="summary-actions">
           <button id="btn-download-rekap" class="btn-ghost action-left">
             ⬇️ Download Rekap
           </button>
-        
+
           <button id="btn-upload-revisi" class="btn-ghost action-right">
             ⬆️ Upload Revisi
           </button>
-        
+
           <input type="file"
                  id="file-revisi"
                  accept=".csv"
                  style="display:none;" />
         </div>
-        
+
         <div class="summary-list" id="summary-list">
           <div class="empty-state">
             Pilih bulan untuk menampilkan capaian tilawah.
           </div>
         </div>
+      </div>
 
       <p class="helper-text">
         Sistem tidak menghapus data capaian tilawah bulanan. Data capaian tilawah ditampilkan berdasarkan bulan yang dipilih.
@@ -524,11 +515,7 @@
 
   function showToast(message, type = "success") {
     toastMessageEl.textContent = message;
-    if (type === "error") {
-      toastIconEl.textContent = "⚠️";
-    } else {
-      toastIconEl.textContent = "✅";
-    }
+    toastIconEl.textContent = type === "error" ? "⚠️" : "✅";
     toastEl.classList.add("show");
     setTimeout(() => {
       toastEl.classList.remove("show");
@@ -572,62 +559,54 @@
     tanggalInput.value = `${yyyy}-${mm}-${dd}`;
   })();
 
-    // ================== LOAD PEGAWAI ==================
-    const pegawaiSelect = document.getElementById("pegawai");
-    const pegawaiSearchInput = document.getElementById("pegawai-search");
-  
-    // menyimpan semua pegawai yang di-load dari Supabase
-    let pegawaiAll = [];
+  // ================== LOAD PEGAWAI + SEARCH ==================
+  const pegawaiSelect = document.getElementById("pegawai");
+  const pegawaiSearchInput = document.getElementById("pegawai-search");
+  let pegawaiAll = [];
 
-    async function loadPegawai() {
-      pegawaiSelect.innerHTML = `<option value="">Memuat...</option>`;
-    
-      const { data, error } = await supabaseClient
-        .from("pegawai")
-        .select("id, nama")
-        .eq("is_active", true)
-        .order("nama", { ascending: true });
-    
-      if (error) {
-        console.error(error);
-        pegawaiSelect.innerHTML = `<option value="">Gagal memuat pegawai</option>`;
-        showToast("Gagal memuat daftar pegawai", "error");
-        return;
-      }
-    
-      if (!data || data.length === 0) {
-        pegawaiSelect.innerHTML = `<option value="">Belum ada data pegawai</option>`;
-        return;
-      }
-  
-        function renderPegawaiOptions(filterText) {
-        const q = (filterText || "").trim().toLowerCase();
-      
-        pegawaiSelect.innerHTML = `<option value="">Pilih Nama</option>`;
-      
-        pegawaiAll
-          .filter(p => !q || p.nama.toLowerCase().includes(q))
-          .forEach(p => {
-            const opt = document.createElement("option");
-            opt.value = p.id;
-            opt.textContent = p.nama;
-            pegawaiSelect.appendChild(opt);
-          });
-      }
+  function renderPegawaiOptions(filterText) {
+    const q = (filterText || "").trim().toLowerCase();
+    pegawaiSelect.innerHTML = `<option value="">Pilih Nama</option>`;
 
-          pegawaiSearchInput.addEventListener("input", () => {
-        renderPegawaiOptions(pegawaiSearchInput.value);
-      
-        // opsional: setiap kali filter, kosongkan pilihan yang lama
-        pegawaiSelect.value = "";
+    pegawaiAll
+      .filter(p => !q || p.nama.toLowerCase().includes(q))
+      .forEach(p => {
+        const opt = document.createElement("option");
+        opt.value = p.id;
+        opt.textContent = p.nama;
+        pegawaiSelect.appendChild(opt);
       });
+  }
 
-      // simpan semua pegawai di memori
-      pegawaiAll = data;
-    
-      // render awal: tanpa filter
-      renderPegawaiOptions("");
+  pegawaiSearchInput.addEventListener("input", () => {
+    renderPegawaiOptions(pegawaiSearchInput.value);
+    pegawaiSelect.value = "";
+  });
+
+  async function loadPegawai() {
+    pegawaiSelect.innerHTML = `<option value="">Memuat...</option>`;
+
+    const { data, error } = await supabaseClient
+      .from("pegawai")
+      .select("id, nama")
+      .eq("is_active", true)
+      .order("nama", { ascending: true });
+
+    if (error) {
+      console.error(error);
+      pegawaiSelect.innerHTML = `<option value="">Gagal memuat pegawai</option>`;
+      showToast("Gagal memuat daftar pegawai", "error");
+      return;
     }
+
+    if (!data || data.length === 0) {
+      pegawaiSelect.innerHTML = `<option value="">Belum ada data pegawai</option>`;
+      return;
+    }
+
+    pegawaiAll = data;
+    renderPegawaiOptions("");
+  }
 
   // ================== SUBMIT TILAWAH ==================
   const tilawahForm = document.getElementById("tilawah-form");
@@ -661,7 +640,6 @@
     }
 
     showToast("Laporan tilawah tersimpan");
-    // reset hanya juz, tanggal biarkan default
     juzSelect.value = "";
   });
 
@@ -687,19 +665,19 @@
       minute: "2-digit"
     });
   }
+
   function getMonthRange(monthValue) {
-    // monthValue: "2025-11"
     if (!monthValue) return null;
     const [year, month] = monthValue.split("-");
     const firstDay = `${year}-${month}-01`;
-  
+
     const monthInt = parseInt(month, 10);
     const yearInt = parseInt(year, 10);
     const nextMonth = monthInt === 12 ? 1 : monthInt + 1;
     const nextYear = monthInt === 12 ? yearInt + 1 : yearInt;
     const nextMonthStr = String(nextMonth).padStart(2, "0");
     const firstDayNextMonth = `${nextYear}-${nextMonthStr}-01`;
-  
+
     return { firstDay, firstDayNextMonth };
   }
 
@@ -737,11 +715,11 @@
     data.forEach((row) => {
       const div = document.createElement("div");
       div.className = "summary-item";
-    
+
       const rincianJuz = Array.isArray(row.juz_list) && row.juz_list.length > 0
         ? row.juz_list.join(", ")
         : "-";
-    
+
       div.innerHTML = `
         <div class="summary-left">
           <span class="summary-name">${row.nama}</span>
@@ -758,31 +736,32 @@
           </div>
         </div>
       `;
-    
+
       summaryListEl.appendChild(div);
     });
   }
+
   btnRefreshSummary.addEventListener("click", loadSummary);
-    const btnDownloadRekap = document.getElementById("btn-download-rekap");
+
+  // ========== DOWNLOAD REKAP ==========
+  const btnDownloadRekap = document.getElementById("btn-download-rekap");
   btnDownloadRekap.addEventListener("click", downloadRekap);
 
-  
   async function downloadRekap() {
     const monthValue = bulanInput.value;
     if (!monthValue) {
       showToast("Pilih bulan terlebih dahulu", "error");
       return;
     }
-  
+
     const range = getMonthRange(monthValue);
     if (!range) {
       showToast("Format bulan tidak valid", "error");
       return;
     }
-  
+
     const { firstDay, firstDayNextMonth } = range;
-  
-    // Ambil semua laporan tilawah di bulan tersebut
+
     const { data, error } = await supabaseClient
       .from("laporan_tilawah")
       .select(`
@@ -796,28 +775,26 @@
       .gte("tanggal_setoran", firstDay)
       .lt("tanggal_setoran", firstDayNextMonth)
       .order("tanggal_setoran", { ascending: true });
-  
+
     if (error) {
       console.error(error);
       showToast("Gagal memuat data rekap", "error");
       return;
     }
-  
+
     if (!data || data.length === 0) {
       showToast("Belum ada data untuk bulan ini", "error");
       return;
     }
-  
-    // Susun CSV
+
     let csv = "pegawai_nip,pegawai_nama,tanggal_setoran,juz\n";
-  
+
     data.forEach(row => {
-      const nip = (row.pegawai && row.pegawai.nip) ? row.pegawai.nip : "";
+      const nip  = (row.pegawai && row.pegawai.nip)  ? row.pegawai.nip  : "";
       const nama = (row.pegawai && row.pegawai.nama) ? row.pegawai.nama : "";
-      const tgl = row.tanggal_setoran;
-      const juz = row.juz;
-  
-      // Sederhana: jika ada koma dalam teks, bungkus dengan tanda kutip
+      const tgl  = row.tanggal_setoran;
+      const juz  = row.juz;
+
       function esc(val) {
         const v = val || "";
         if (String(v).includes(",")) {
@@ -825,7 +802,7 @@
         }
         return String(v);
       }
-  
+
       csv += [
         esc(nip),
         esc(nama),
@@ -833,11 +810,10 @@
         esc(juz)
       ].join(",") + "\n";
     });
-  
-    // Buat file dan trigger download
+
     const blob = new Blob([csv], { type: "text/csv;charset=utf-8;" });
     const url = URL.createObjectURL(blob);
-  
+
     const [year, month] = monthValue.split("-");
     const a = document.createElement("a");
     a.href = url;
@@ -846,149 +822,143 @@
     a.click();
     document.body.removeChild(a);
     URL.revokeObjectURL(url);
-  
+
     showToast("Rekap berhasil didownload");
   }
-    const btnUploadRevisi = document.getElementById("btn-upload-revisi");
-    const fileRevisiInput = document.getElementById("file-revisi");
-    
-    btnUploadRevisi.addEventListener("click", () => {
-      const monthValue = bulanInput.value;
-      if (!monthValue) {
-        showToast("Pilih bulan dulu sebelum upload revisi", "error");
-        return;
+
+  // ========== UPLOAD REVISI ==========
+  const btnUploadRevisi = document.getElementById("btn-upload-revisi");
+  const fileRevisiInput = document.getElementById("file-revisi");
+
+  btnUploadRevisi.addEventListener("click", () => {
+    const monthValue = bulanInput.value;
+    if (!monthValue) {
+      showToast("Pilih bulan dulu sebelum upload revisi", "error");
+      return;
+    }
+    fileRevisiInput.value = "";
+    fileRevisiInput.click();
+  });
+
+  fileRevisiInput.addEventListener("change", async () => {
+    const file = fileRevisiInput.files[0];
+    if (!file) return;
+
+    const monthValue = bulanInput.value;
+    const range = getMonthRange(monthValue);
+    if (!range) {
+      showToast("Format bulan tidak valid", "error");
+      return;
+    }
+
+    if (!confirm("Revisi akan mengganti seluruh data laporan bulan ini dengan isi file CSV. Lanjutkan?")) {
+      return;
+    }
+
+    try {
+      const text = await file.text();
+      await processRevisiCSV(text, range);
+      showToast("Revisi berhasil diupload");
+      await loadSummary();
+    } catch (err) {
+      console.error(err);
+      showToast("Gagal memproses revisi: " + err.message, "error");
+    }
+  });
+
+  async function processRevisiCSV(csvText, range) {
+    const { firstDay, firstDayNextMonth } = range;
+
+    const lines = csvText.trim().split(/\r?\n/);
+    if (lines.length < 2) {
+      throw new Error("File kosong atau tidak ada data");
+    }
+
+    const header = lines[0].split(",");
+    const idxNip = header.indexOf("pegawai_nip");
+    const idxTgl = header.indexOf("tanggal_setoran");
+    const idxJuz = header.indexOf("juz");
+
+    if (idxNip === -1 || idxTgl === -1 || idxJuz === -1) {
+      throw new Error('Header harus mengandung: pegawai_nip, tanggal_setoran, juz');
+    }
+
+    const { data: pegawaiData, error: pegawaiError } = await supabaseClient
+      .from("pegawai")
+      .select("id, nip");
+
+    if (pegawaiError) {
+      console.error(pegawaiError);
+      throw new Error("Gagal memuat data pegawai");
+    }
+
+    const pegawaiMap = {};
+    (pegawaiData || []).forEach(p => {
+      if (p.nip) {
+        pegawaiMap[p.nip.trim()] = p.id;
       }
-      fileRevisiInput.value = ""; // reset input
-      fileRevisiInput.click();
     });
-    
-    fileRevisiInput.addEventListener("change", async () => {
-      const file = fileRevisiInput.files[0];
-      if (!file) return;
-    
-      const monthValue = bulanInput.value;
-      const range = getMonthRange(monthValue);
-      if (!range) {
-        showToast("Format bulan tidak valid", "error");
-        return;
+
+    const reports = [];
+
+    for (let i = 1; i < lines.length; i++) {
+      const line = lines[i].trim();
+      if (!line) continue;
+
+      const cols = line.split(",");
+      const nip    = (cols[idxNip] || "").trim();
+      const tgl    = (cols[idxTgl] || "").trim();
+      const juzStr = (cols[idxJuz] || "").trim();
+
+      if (!nip || !tgl || !juzStr) {
+        throw new Error(`Baris ${i + 1}: data tidak lengkap`);
       }
-    
-      if (!confirm("Revisi akan mengganti seluruh data laporan bulan ini dengan isi file CSV. Lanjutkan?")) {
-        return;
+
+      const pegawaiId = pegawaiMap[nip];
+      if (!pegawaiId) {
+        throw new Error(`Baris ${i + 1}: NIP ${nip} tidak ditemukan di tabel pegawai`);
       }
-    
-      try {
-        const text = await file.text();
-        await processRevisiCSV(text, range);
-        showToast("Revisi berhasil diupload");
-        await loadSummary(); // refresh tampilan
-      } catch (err) {
-        console.error(err);
-        showToast("Gagal memproses revisi: " + err.message, "error");
+
+      const juz = parseInt(juzStr, 10);
+      if (isNaN(juz) || juz < 1 || juz > 30) {
+        throw new Error(`Baris ${i + 1}: juz tidak valid (${juzStr})`);
       }
-    });
-  
-      async function processRevisiCSV(csvText, range) {
-        const { firstDay, firstDayNextMonth } = range;
-      
-        // 1) Parse CSV sederhana
-        const lines = csvText.trim().split(/\r?\n/);
-        if (lines.length < 2) {
-          throw new Error("File kosong atau tidak ada data");
-        }
-      
-        const header = lines[0].split(",");
-        const idxNip   = header.indexOf("pegawai_nip");
-        const idxNama  = header.indexOf("pegawai_nama");
-        const idxTgl   = header.indexOf("tanggal_setoran");
-        const idxJuz   = header.indexOf("juz");
-      
-        if (idxNip === -1 || idxTgl === -1 || idxJuz === -1) {
-          throw new Error('Header harus mengandung: pegawai_nip, tanggal_setoran, juz');
-        }
-      
-        // 2) Ambil semua pegawai untuk mapping nip -> id
-        const { data: pegawaiData, error: pegawaiError } = await supabaseClient
-          .from("pegawai")
-          .select("id, nip");
-      
-        if (pegawaiError) {
-          console.error(pegawaiError);
-          throw new Error("Gagal memuat data pegawai");
-        }
-      
-        const pegawaiMap = {};
-        (pegawaiData || []).forEach(p => {
-          if (p.nip) {
-            pegawaiMap[p.nip.trim()] = p.id;
-          }
-        });
-      
-        // 3) Susun array data laporan baru
-        const reports = [];
-      
-        for (let i = 1; i < lines.length; i++) {
-          const line = lines[i].trim();
-          if (!line) continue;
-      
-          const cols = line.split(",");
-          const nip = (cols[idxNip] || "").trim();
-          const tgl = (cols[idxTgl] || "").trim();
-          const juzStr = (cols[idxJuz] || "").trim();
-      
-          if (!nip || !tgl || !juzStr) {
-            throw new Error(`Baris ${i + 1}: data tidak lengkap`);
-          }
-      
-          const pegawaiId = pegawaiMap[nip];
-          if (!pegawaiId) {
-            throw new Error(`Baris ${i + 1}: NIP ${nip} tidak ditemukan di tabel pegawai`);
-          }
-      
-          const juz = parseInt(juzStr, 10);
-          if (isNaN(juz) || juz < 1 || juz > 30) {
-            throw new Error(`Baris ${i + 1}: juz tidak valid (${juzStr})`);
-          }
-      
-          // Tanggal boleh di luar range bulan, tapi idealnya sesuai.
-          reports.push({
-            pegawai_id: pegawaiId,
-            tanggal_setoran: tgl,
-            juz: juz
-          });
-        }
-      
-        if (reports.length === 0) {
-          throw new Error("Tidak ada baris data yang valid");
-        }
-      
-        // 4) Hapus dulu laporan bulan ini
-        const { error: delError } = await supabaseClient
-          .from("laporan_tilawah")
-          .delete()
-          .gte("tanggal_setoran", firstDay)
-          .lt("tanggal_setoran", firstDayNextMonth);
-      
-        if (delError) {
-          console.error(delError);
-          throw new Error("Gagal menghapus data lama bulan ini");
-        }
-      
-        // 5) Insert data baru (batch)
-        const { error: insError } = await supabaseClient
-          .from("laporan_tilawah")
-          .insert(reports);
-      
-        if (insError) {
-          console.error(insError);
-          throw new Error("Gagal menyimpan data revisi");
-        }
-      }
- 
+
+      reports.push({
+        pegawai_id: pegawaiId,
+        tanggal_setoran: tgl,
+        juz: juz
+      });
+    }
+
+    if (reports.length === 0) {
+      throw new Error("Tidak ada baris data yang valid");
+    }
+
+    const { error: delError } = await supabaseClient
+      .from("laporan_tilawah")
+      .delete()
+      .gte("tanggal_setoran", firstDay)
+      .lt("tanggal_setoran", firstDayNextMonth);
+
+    if (delError) {
+      console.error(delError);
+      throw new Error("Gagal menghapus data lama bulan ini");
+    }
+
+    const { error: insError } = await supabaseClient
+      .from("laporan_tilawah")
+      .insert(reports);
+
+    if (insError) {
+      console.error(insError);
+      throw new Error("Gagal menyimpan data revisi");
+    }
+  }
+
   // ================== INITIAL LOAD ==================
   (async function init() {
     await loadPegawai();
-    // langsung muat summary current month
     await loadSummary();
   })();
 </script>
